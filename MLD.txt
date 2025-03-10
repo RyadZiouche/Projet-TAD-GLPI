@@ -1,0 +1,14 @@
+-- Modèle Logique des Données (MLD)
+
+-- Sites(#site_id, nom) : Répertorie les différents sites où sont déployés les équipements.
+-- Users(#user_id, nom, email, role, site_id) : Gère les utilisateurs et leurs rôles au sein de chaque site.
+-- Assets(#asset_id, nom, type, etat, site_id) : Stocke les informations sur les équipements informatiques par site.
+-- Network_devices(#device_id, type, adresse_ip, site_id) : Contient les appareils réseau (routeurs, switchs) et leurs adresses IP.
+-- Network_connections(#connection_id, source_device_id, destination_device_id, type_connexion, site_id) : Définit les connexions entre équipements réseau.
+-- Tickets(#ticket_id, titre, description, statut, date_creation, user_id, asset_id, site_id) : Gère les incidents et demandes de support IT.
+-- Event_logs(#log_id, type, description, date_event, asset_id) : Enregistre les événements liés aux équipements pour audit et traçabilité.
+-- Notifications(#notification_id, user_id, message, statut, date_envoi) : Gère les alertes envoyées aux utilisateurs.
+-- Stock(#stock_id, asset_id, quantite, seuil_alerte, site_id) : Suit les niveaux de stock des équipements et génère des alertes en cas de seuil critique.
+
+
+A faire cardinalite puis mcd et representation des fragmentations 
