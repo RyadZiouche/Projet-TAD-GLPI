@@ -1,92 +1,105 @@
--- Table des sites (référentiel pour la fragmentation)
-CREATE TABLE sites (
-    site_id INT PRIMARY KEY,
-    nom VARCHAR(50) UNIQUE NOT NULL
+-- Création de la table des rôles
+CREATE TABLE roles (
+    id_role INT PRIMARY KEY,
+    nom_role VARCHAR(50) UNIQUE NOT NULL
 );
 
--- Table des utilisateurs (centralisée sur Cergy Le Parc)
-CREATE TABLE users (
-    user_id INT PRIMARY KEY,
+-- Création de la table des utilisateurs
+CREATE TABLE utilisateurs (
+    id_utilisateur INT PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
+    prenom VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
-    role ENUM('Admin', 'Technicien', 'Utilisateur') NOT NULL,
-    site_id INT NOT NULL,
-    FOREIGN KEY (site_id) REFERENCES sites(site_id)
+    id_role INT NOT NULL,
+    FOREIGN KEY (id_role) REFERENCES roles(id_role)
 );
 
--- Table des équipements (fragmentation horizontale par site)
-CREATE TABLE assets (
-    asset_id INT PRIMARY KEY,
-    nom VARCHAR(100) NOT NULL,
-    type ENUM('Ordinateur', 'Écran', 'Imprimante', 'Routeur') NOT NULL,
-    etat ENUM('Actif', 'En panne', 'Remplacé') NOT NULL,
-    site_id INT NOT NULL,
-    FOREIGN KEY (site_id) REFERENCES sites(site_id)
+-- Création de la table des sites
+CREATE TABLE sites (
+    id_site INT PRIMARY KEY,
+    nom_site VARCHAR(50) UNIQUE NOT NULL
 );
 
--- Table des équipements réseau (fragmentation horizontale)
-CREATE TABLE network_devices (
-    device_id INT PRIMARY KEY,
-    type VARCHAR(50) NOT NULL,
+-- Création de la table des types de matériels
+CREATE TABLE types_materiels (
+    id_type_materiel INT PRIMARY KEY,
+    nom_type_materiel VARCHAR(100) UNIQUE NOT NULL
+);
+
+-- Création de la table des réseaux
+CREATE TABLE reseaux (
+    id_reseau INT PRIMARY KEY,
     adresse_ip VARCHAR(15) UNIQUE NOT NULL,
-    site_id INT NOT NULL,
-    FOREIGN KEY (site_id) REFERENCES sites(site_id)
+    sous_reseau VARCHAR(50) NOT NULL
 );
 
--- Table des connexions réseau (fragmentation horizontale)
-CREATE TABLE network_connections (
-    connection_id INT PRIMARY KEY,
-    source_device_id INT NOT NULL,
-    destination_device_id INT NOT NULL,
-    type_connexion VARCHAR(50) NOT NULL,
-    site_id INT NOT NULL,
-    FOREIGN KEY (source_device_id) REFERENCES network_devices(device_id),
-    FOREIGN KEY (destination_device_id) REFERENCES network_devices(device_id),
-    FOREIGN KEY (site_id) REFERENCES sites(site_id)
+-- Création de la table des matériels (fragmentation horizontale)
+CREATE TABLE materiels (
+    id_materiel INT PRIMARY KEY,
+    nom_materiel VARCHAR(100) NOT NULL,
+    id_type_materiel INT NOT NULL,
+    id_site INT NOT NULL,
+    id_reseau INT,
+    FOREIGN KEY (id_type_materiel) REFERENCES types_materiels(id_type_materiel),
+    FOREIGN KEY (id_site) REFERENCES sites(id_site),
+    FOREIGN KEY (id_reseau) REFERENCES reseaux(id_reseau)
 );
 
--- Table des tickets (centralisée à Cergy Le Parc, vues pour chaque site)
+-- Création de la table des attributions des matériels aux utilisateurs
+CREATE TABLE attributions (
+    id_attribution INT PRIMARY KEY,
+    id_utilisateur INT NOT NULL,
+    id_materiel INT NOT NULL,
+    FOREIGN KEY (id_utilisateur) REFERENCES utilisateurs(id_utilisateur),
+    FOREIGN KEY (id_materiel) REFERENCES materiels(id_materiel)
+);
+
+-- Création de la table des tickets (gestion des incidents IT)
 CREATE TABLE tickets (
     ticket_id INT PRIMARY KEY,
     titre VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     statut ENUM('Ouvert', 'En cours', 'Fermé') NOT NULL,
     date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    user_id INT NOT NULL,
-    asset_id INT,
-    site_id INT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (asset_id) REFERENCES assets(asset_id),
-    FOREIGN KEY (site_id) REFERENCES sites(site_id)
+    id_utilisateur INT NOT NULL,
+    id_materiel INT,
+    id_site INT NOT NULL,
+    FOREIGN KEY (id_utilisateur) REFERENCES utilisateurs(id_utilisateur),
+    FOREIGN KEY (id_materiel) REFERENCES materiels(id_materiel),
+    FOREIGN KEY (id_site) REFERENCES sites(id_site)
 );
 
--- Table des logs (centralisée à Cergy Le Parc)
+-- Création de la table des logs d’événements
 CREATE TABLE event_logs (
     log_id INT PRIMARY KEY,
     type VARCHAR(50) NOT NULL,
     description TEXT NOT NULL,
     date_event TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    asset_id INT,
-    FOREIGN KEY (asset_id) REFERENCES assets(asset_id)
+    id_materiel INT,
+    FOREIGN KEY (id_materiel) REFERENCES materiels(id_materiel)
 );
 
--- Table des notifications
+-- Création de la table des notifications
 CREATE TABLE notifications (
     notification_id INT PRIMARY KEY,
-    user_id INT NOT NULL,
+    id_utilisateur INT NOT NULL,
     message TEXT NOT NULL,
     statut ENUM('Non lu', 'Lu') DEFAULT 'Non lu',
     date_envoi TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    FOREIGN KEY (id_utilisateur) REFERENCES utilisateurs(id_utilisateur)
 );
 
--- Table de gestion des stocks
+-- Création de la table de gestion des stocks (fragmentation horizontale)
 CREATE TABLE stock (
     stock_id INT PRIMARY KEY,
-    asset_id INT NOT NULL,
+    id_materiel INT NOT NULL,
     quantite INT NOT NULL CHECK (quantite >= 0),
     seuil_alerte INT NOT NULL CHECK (seuil_alerte >= 0),
-    site_id INT NOT NULL,
-    FOREIGN KEY (asset_id) REFERENCES assets(asset_id),
-    FOREIGN KEY (site_id) REFERENCES sites(site_id)
+    id_site INT NOT NULL,
+    FOREIGN KEY (id_materiel) REFERENCES materiels(id_materiel),
+    FOREIGN KEY (id_site) REFERENCES sites(id_site)
 );
+
+-- 🔹 Les **données critiques** (tickets, utilisateurs, rôles, logs) sont **centralisées à Cergy Le Parc**.
+-- 🔹 Les **données spécifiques à un site** (matériels, réseaux, stocks) sont **fragmentées horizontalement**.
+-- 🔹 Les **vues filtrées** permettent aux sites secondaires de **consulter uniquement les données qui les concernent**.

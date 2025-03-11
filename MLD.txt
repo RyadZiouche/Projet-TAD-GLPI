@@ -1,14 +1,84 @@
 -- Modèle Logique des Données (MLD)
 
--- Sites(#site_id, nom) : Répertorie les différents sites où sont déployés les équipements.
--- Users(#user_id, nom, email, role, site_id) : Gère les utilisateurs et leurs rôles au sein de chaque site.
--- Assets(#asset_id, nom, type, etat, site_id) : Stocke les informations sur les équipements informatiques par site.
--- Network_devices(#device_id, type, adresse_ip, site_id) : Contient les appareils réseau (routeurs, switchs) et leurs adresses IP.
--- Network_connections(#connection_id, source_device_id, destination_device_id, type_connexion, site_id) : Définit les connexions entre équipements réseau.
--- Tickets(#ticket_id, titre, description, statut, date_creation, user_id, asset_id, site_id) : Gère les incidents et demandes de support IT.
--- Event_logs(#log_id, type, description, date_event, asset_id) : Enregistre les événements liés aux équipements pour audit et traçabilité.
--- Notifications(#notification_id, user_id, message, statut, date_envoi) : Gère les alertes envoyées aux utilisateurs.
--- Stock(#stock_id, asset_id, quantite, seuil_alerte, site_id) : Suit les niveaux de stock des équipements et génère des alertes en cas de seuil critique.
+-- 📌 Répartition des Données en Base de Données Répartie
+-- 🔹 Le site **Cergy Le Parc** est la base principale et gère toutes les écritures.
+-- 🔹 Les sites **Cergy Fermat** et **Pau** disposent de réplicas en lecture seule.
+-- 🔹 Certaines tables sont **fragmentées** pour optimiser la répartition des données.
 
+-- Utilisateurs (#id_utilisateur, nom, prenom, email, id_role) : 
+-- 📌 Gère les utilisateurs et leurs rôles au sein de l'organisation.
+-- 📌 Chaque utilisateur est associé à un rôle spécifique (Admin, Technicien, Utilisateur).
+-- 🔗 (1,N) Relation avec Rôles
+-- 🔹 Centralisé à Cergy Le Parc, accessible en lecture via des vues sur les autres sites.
 
-A faire cardinalite puis mcd et representation des fragmentations 
+-- Rôles (#id_role, nom_role) : 
+-- 📌 Définit les rôles et permissions des utilisateurs.
+-- 📌 Permet de gérer les accès et les actions autorisées dans le système.
+-- 🔗 (1,N) Relation avec Utilisateurs
+-- 🔹 Centralisé à Cergy Le Parc, répliqué en lecture sur les autres sites.
+
+-- Matériels (#id_materiel, nom_materiel, id_type_materiel, id_site, id_reseau) :
+-- 📌 Stocke les équipements informatiques et leur localisation.
+-- 📌 Chaque matériel est lié à un site et éventuellement à un réseau.
+-- 🔗 (1,N) Relation avec Types de Matériels
+-- 🔗 (1,N) Relation avec Sites
+-- 🔗 (0,N) Relation avec Réseaux
+-- 🔹 **Fragmentation horizontale** : chaque site stocke ses propres équipements.
+
+-- Types de matériels (#id_type_materiel, nom_type_materiel) :
+-- 📌 Catégorise les équipements pour faciliter leur gestion.
+-- 📌 Exemples : Ordinateur, Imprimante, Routeur.
+-- 🔗 (1,N) Relation avec Matériels
+-- 🔹 Centralisé à Cergy Le Parc, répliqué en lecture sur les autres sites.
+
+-- Sites (#id_site, nom_site) :
+-- 📌 Répertorie les différents sites où sont déployés les équipements.
+-- 📌 Utilisé pour la gestion multi-sites.
+-- 🔗 (1,N) Relation avec Matériels
+-- 🔗 (1,N) Relation avec Tickets
+-- 🔗 (1,N) Relation avec Stock
+-- 🔹 Centralisé à Cergy Le Parc, répliqué en lecture sur les autres sites.
+
+-- Réseaux (#id_reseau, adresse_ip, sous_reseau) :
+-- 📌 Gère les infrastructures réseau et les connexions entre équipements.
+-- 📌 Chaque matériel peut être connecté à un réseau spécifique.
+-- 🔗 (0,N) Relation avec Matériels
+-- 🔹 **Fragmentation horizontale** : chaque site gère son propre réseau.
+
+-- Attributions (#id_attribution, id_utilisateur, id_materiel) :
+-- 📌 Associe les équipements aux utilisateurs.
+-- 📌 Permet de savoir quel utilisateur utilise quel matériel.
+-- 🔗 (1,N) Relation avec Utilisateurs
+-- 🔗 (1,N) Relation avec Matériels
+-- 🔹 Centralisé à Cergy Le Parc, accessible en lecture sur les autres sites.
+
+-- Tickets (#ticket_id, titre, description, statut, date_creation, id_utilisateur, id_materiel, id_site) :
+-- 📌 Gère les incidents et demandes de support IT.
+-- 📌 Permet de suivre le cycle de vie des demandes (Ouvert, En cours, Fermé).
+-- 🔗 (1,N) Relation avec Utilisateurs
+-- 🔗 (0,N) Relation avec Matériels
+-- 🔗 (1,N) Relation avec Sites
+-- 🔹 Centralisé à Cergy Le Parc, accessible en lecture sur les autres sites via des **vues filtrées**.
+
+-- Event_logs (#log_id, type, description, date_event, id_materiel) :
+-- 📌 Enregistre les événements liés aux équipements pour audit et traçabilité.
+-- 📌 Exemples : changement d’état d’un matériel, mise à jour.
+-- 🔗 (0,N) Relation avec Matériels
+-- 🔹 Centralisé à Cergy Le Parc, accessible en lecture sur les autres sites.
+
+-- Notifications (#notification_id, id_utilisateur, message, statut, date_envoi) :
+-- 📌 Gère les alertes envoyées aux utilisateurs.
+-- 📌 Exemples : notification de ticket mis à jour, alerte de maintenance.
+-- 🔗 (1,N) Relation avec Utilisateurs
+-- 🔹 Centralisé à Cergy Le Parc, notifications envoyées aux utilisateurs sur tous les sites.
+
+-- Stock (#stock_id, id_materiel, quantite, seuil_alerte, id_site) :
+-- 📌 Suit les niveaux de stock des équipements et génère des alertes en cas de seuil critique.
+-- 📌 Permet de prévoir les réapprovisionnements.
+-- 🔗 (1,N) Relation avec Matériels
+-- 🔗 (1,N) Relation avec Sites
+-- 🔹 **Fragmentation horizontale** : chaque site stocke uniquement son propre stock de matériel.
+
+-- 🔹 Les **données critiques** (tickets, utilisateurs, rôles, logs) sont **centralisées à Cergy Le Parc**.
+-- 🔹 Les **données spécifiques à un site** (matériels, réseaux, stocks) sont **fragmentées horizontalement**.
+-- 🔹 Les **vues filtrées** permettent aux sites secondaires de **consulter uniquement les données qui les concernent**.
