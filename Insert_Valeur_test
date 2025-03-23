@@ -1,0 +1,117 @@
+-- ==============================
+-- Données pour la table 'sites'
+-- ==============================
+INSERT INTO sites (id_site, nom_site) 
+VALUES (sites_seq.NEXTVAL, 'Paris');
+
+INSERT INTO sites (id_site, nom_site) 
+VALUES (sites_seq.NEXTVAL, 'Lyon');
+
+INSERT INTO sites (id_site, nom_site) 
+VALUES (sites_seq.NEXTVAL, 'Marseille');
+
+-- ======================================
+-- Données pour la table 'types_materiels'
+-- ======================================
+INSERT INTO types_materiels (id_type_materiel, nom_type_materiel) 
+VALUES (types_materiels_seq.NEXTVAL, 'Ordinateur');
+
+INSERT INTO types_materiels (id_type_materiel, nom_type_materiel) 
+VALUES (types_materiels_seq.NEXTVAL, 'Imprimante');
+
+INSERT INTO types_materiels (id_type_materiel, nom_type_materiel) 
+VALUES (types_materiels_seq.NEXTVAL, 'Switch réseau');
+
+-- ================================
+-- Données pour la table 'réseaux'
+-- ================================
+INSERT INTO reseaux (id_reseau, adresse_ip, sous_reseau) 
+VALUES (reseaux_seq.NEXTVAL, '192.168.1.1', '255.255.255.0');
+
+INSERT INTO reseaux (id_reseau, adresse_ip, sous_reseau) 
+VALUES (reseaux_seq.NEXTVAL, '192.168.2.1', '255.255.255.0');
+
+INSERT INTO reseaux (id_reseau, adresse_ip, sous_reseau) 
+VALUES (reseaux_seq.NEXTVAL, '192.168.3.1', '255.255.255.0');
+
+-- ====================================
+-- Données pour la table 'utilisateurs'
+-- ====================================
+INSERT INTO utilisateurs (id_utilisateur, nom, prenom, email, id_site) 
+VALUES (utilisateurs_seq.NEXTVAL, 'Dupont', 'Jean', 'jean.dupont@example.com', 1);
+
+INSERT INTO utilisateurs (id_utilisateur, nom, prenom, email, id_site) 
+VALUES (utilisateurs_seq.NEXTVAL, 'Martin', 'Alice', 'alice.martin@example.com', 2);
+
+INSERT INTO utilisateurs (id_utilisateur, nom, prenom, email, id_site) 
+VALUES (utilisateurs_seq.NEXTVAL, 'Bernard', 'Claire', 'claire.bernard@example.com', 3);
+
+-- ================================
+-- Données pour la table 'materiels'
+-- ================================
+INSERT INTO materiels (id_materiel, nom_materiel, id_type_materiel, id_site, id_reseau) 
+VALUES (materiels_seq.NEXTVAL, 'PC-Paris-01', 1, 1, 1);
+
+INSERT INTO materiels (id_materiel, nom_materiel, id_type_materiel, id_site, id_reseau) 
+VALUES (materiels_seq.NEXTVAL, 'Printer-Lyon-01', 2, 2, 2);
+
+INSERT INTO materiels (id_materiel, nom_materiel, id_type_materiel, id_site, id_reseau) 
+VALUES (materiels_seq.NEXTVAL, 'Switch-Marseille-01', 3, 3, 3);
+
+INSERT INTO materiels (id_materiel, nom_materiel, id_type_materiel, id_site, id_reseau) 
+VALUES (materiels_seq.NEXTVAL, 'PC-Lyon-02', 1, 2, 2);
+
+-- ==========================================
+-- Données pour la table 'attributions'
+-- ==========================================
+INSERT INTO attributions (id_attribution, id_utilisateur, id_materiel) 
+VALUES (attributions_seq.NEXTVAL, 1, 1);
+
+INSERT INTO attributions (id_attribution, id_utilisateur, id_materiel) 
+VALUES (attributions_seq.NEXTVAL, 2, 2);
+
+INSERT INTO attributions (id_attribution, id_utilisateur, id_materiel) 
+VALUES (attributions_seq.NEXTVAL, 3, 3);
+
+-- ===============================
+-- Données pour la table 'tickets'
+-- ===============================
+INSERT INTO tickets (ticket_id, titre, description, statut, id_utilisateur, id_materiel, id_site)
+VALUES (tickets_seq.NEXTVAL, 'Panne PC', 'Le PC ne démarre plus', 'Ouvert', 1, 1, 1);
+
+INSERT INTO tickets (ticket_id, titre, description, statut, id_utilisateur, id_materiel, id_site)
+VALUES (tickets_seq.NEXTVAL, 'Imprimante bloquée', 'L''imprimante n''imprime plus', 'En cours', 2, 2, 2);
+
+INSERT INTO tickets (ticket_id, titre, description, statut, id_utilisateur, id_materiel, id_site)
+VALUES (tickets_seq.NEXTVAL, 'Switch défectueux', 'Le switch réseau ne fonctionne plus', 'Fermé', 3, 3, 3);
+
+-- ===================================
+-- Données pour la table 'logs_reseaux'
+-- ===================================
+INSERT INTO logs_reseaux (log_id, type, description, id_materiel)
+VALUES (logs_reseaux_seq.NEXTVAL, 'Panne', 'Problème de connectivité sur le switch', 3);
+
+INSERT INTO logs_reseaux (log_id, type, description, id_materiel)
+VALUES (logs_reseaux_seq.NEXTVAL, 'Mise à jour', 'Mise à jour du firmware de l''imprimante', 2);
+
+-- ====================================
+-- Données pour la table 'logs_tickets'
+-- ====================================
+INSERT INTO logs_tickets (log_id, ticket_id, action, utilisateur, description)
+VALUES (logs_tickets_seq.NEXTVAL, 1, 'Création', 'Jean Dupont', 'Création du ticket pour la panne du PC');
+
+INSERT INTO logs_tickets (log_id, ticket_id, action, utilisateur, description)
+VALUES (logs_tickets_seq.NEXTVAL, 2, 'Modification', 'Alice Martin', 'Mise à jour du statut du ticket');
+
+-- ==========================
+-- Données pour la table 'stock'
+-- ==========================
+INSERT INTO stock (stock_id, id_materiel, id_site)
+VALUES (stock_seq.NEXTVAL, 1, 1);
+
+INSERT INTO stock (stock_id, id_materiel, id_site)
+VALUES (stock_seq.NEXTVAL, 2, 2);
+
+INSERT INTO stock (stock_id, id_materiel, id_site)
+VALUES (stock_seq.NEXTVAL, 3, 3);
+/
