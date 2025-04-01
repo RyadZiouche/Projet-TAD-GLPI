@@ -1,84 +1,49 @@
--- Modèle Logique des Données (MLD)
+Modèle Logique des Données (MLD) - Site Principal et Vues Sites Secondaires
+    Tables principales (Site Central Cergy Le Parc)
+Utilisateurs(id_utilisateur PRIMARY KEY, nom, prenom, email)
+=>Stocké centralement, accessible en lecture sur les autres sites.
 
--- 📌 Répartition des Données en Base de Données Répartie
--- 🔹 Le site **Cergy Le Parc** est la base principale et gère toutes les écritures.
--- 🔹 Les sites **Cergy Fermat** et **Pau** disposent de réplicas en lecture seule.
--- 🔹 Certaines tables sont **fragmentées** pour optimiser la répartition des données.
+Types_de_Materiels(id_type_materiel , nom_type_materiel)
 
--- Utilisateurs (#id_utilisateur, nom, prenom, email, id_role) : 
--- 📌 Gère les utilisateurs et leurs rôles au sein de l'organisation.
--- 📌 Chaque utilisateur est associé à un rôle spécifique (Admin, Technicien, Utilisateur).
--- 🔗 (1,N) Relation avec Rôles
--- 🔹 Centralisé à Cergy Le Parc, accessible en lecture via des vues sur les autres sites.
+=>Stocké centralement, répliqué en lecture sur les autres sites.
+Relation : (1,N) avec Matériels.
 
--- Rôles (#id_role, nom_role) : 
--- 📌 Définit les rôles et permissions des utilisateurs.
--- 📌 Permet de gérer les accès et les actions autorisées dans le système.
--- 🔗 (1,N) Relation avec Utilisateurs
--- 🔹 Centralisé à Cergy Le Parc, répliqué en lecture sur les autres sites.
+Sites(id_site , nom_site)
+=>Stocké centralement, accessible en lecture sur les autres sites.
+Relation : (1,N) avec Matériels, Tickets, Stock.
 
--- Matériels (#id_materiel, nom_materiel, id_type_materiel, id_site, id_reseau) :
--- 📌 Stocke les équipements informatiques et leur localisation.
--- 📌 Chaque matériel est lié à un site et éventuellement à un réseau.
--- 🔗 (1,N) Relation avec Types de Matériels
--- 🔗 (1,N) Relation avec Sites
--- 🔗 (0,N) Relation avec Réseaux
--- 🔹 **Fragmentation horizontale** : chaque site stocke ses propres équipements.
+Réseaux(id_reseau , adresse_ip, sous_reseau)
+=>Fragmenté horizontalement (chaque site gère son propre réseau).
+Relation : (0,N) avec Matériels.
 
--- Types de matériels (#id_type_materiel, nom_type_materiel) :
--- 📌 Catégorise les équipements pour faciliter leur gestion.
--- 📌 Exemples : Ordinateur, Imprimante, Routeur.
--- 🔗 (1,N) Relation avec Matériels
--- 🔹 Centralisé à Cergy Le Parc, répliqué en lecture sur les autres sites.
+Matériels(id_materiel, nom_materiel, #id_type_materiel, #id_site, #id_reseau )
+=>Fragmenté horizontalement (chaque site stocke ses équipements).
+Relations : (1,N) avec Types_de_Materiels, (1,N) avec Sites, (0,N) avec Réseaux.
 
--- Sites (#id_site, nom_site) :
--- 📌 Répertorie les différents sites où sont déployés les équipements.
--- 📌 Utilisé pour la gestion multi-sites.
--- 🔗 (1,N) Relation avec Matériels
--- 🔗 (1,N) Relation avec Tickets
--- 🔗 (1,N) Relation avec Stock
--- 🔹 Centralisé à Cergy Le Parc, répliqué en lecture sur les autres sites.
+Attributions(id_attribution, #id_utilisateur , #id_materiel )
+=>Stocké centralement, accessible en lecture sur les autres sites.
+Relations : (1,N) avec Utilisateurs et Matériels.
 
--- Réseaux (#id_reseau, adresse_ip, sous_reseau) :
--- 📌 Gère les infrastructures réseau et les connexions entre équipements.
--- 📌 Chaque matériel peut être connecté à un réseau spécifique.
--- 🔗 (0,N) Relation avec Matériels
--- 🔹 **Fragmentation horizontale** : chaque site gère son propre réseau.
+Tickets(ticket_id , titre, description, statut, date_creation, #id_utilisateur , #id_materiel , #id_site )
+=>Stocké centralement, accessible en lecture via des vues filtrées.
+Relations : (1,N) avec Utilisateurs, (0,N) avec Matériels, (1,N) avec Sites.
 
--- Attributions (#id_attribution, id_utilisateur, id_materiel) :
--- 📌 Associe les équipements aux utilisateurs.
--- 📌 Permet de savoir quel utilisateur utilise quel matériel.
--- 🔗 (1,N) Relation avec Utilisateurs
--- 🔗 (1,N) Relation avec Matériels
--- 🔹 Centralisé à Cergy Le Parc, accessible en lecture sur les autres sites.
+Event_Logs(log_id , type, description, date_event, #id_materiel )
+=>Stocké centralement, accessible en lecture sur les autres sites.
+Relation : (0,N) avec Matériels.
 
--- Tickets (#ticket_id, titre, description, statut, date_creation, id_utilisateur, id_materiel, id_site) :
--- 📌 Gère les incidents et demandes de support IT.
--- 📌 Permet de suivre le cycle de vie des demandes (Ouvert, En cours, Fermé).
--- 🔗 (1,N) Relation avec Utilisateurs
--- 🔗 (0,N) Relation avec Matériels
--- 🔗 (1,N) Relation avec Sites
--- 🔹 Centralisé à Cergy Le Parc, accessible en lecture sur les autres sites via des **vues filtrées**.
+Notifications(notification_id , #id_utilisateur , message, statut, date_envoi)
+=>Stocké centralement.
+Relation : (1,N) avec Utilisateurs.
 
--- Event_logs (#log_id, type, description, date_event, id_materiel) :
--- 📌 Enregistre les événements liés aux équipements pour audit et traçabilité.
--- 📌 Exemples : changement d’état d’un matériel, mise à jour.
--- 🔗 (0,N) Relation avec Matériels
--- 🔹 Centralisé à Cergy Le Parc, accessible en lecture sur les autres sites.
+Stock(stock_id, #id_materiel , quantite, seuil_alerte, id_site )
+=>Fragmenté horizontalement (chaque site stocke uniquement son propre stock).
+Relations : (1,N) avec Matériels et Sites.
 
--- Notifications (#notification_id, id_utilisateur, message, statut, date_envoi) :
--- 📌 Gère les alertes envoyées aux utilisateurs.
--- 📌 Exemples : notification de ticket mis à jour, alerte de maintenance.
--- 🔗 (1,N) Relation avec Utilisateurs
--- 🔹 Centralisé à Cergy Le Parc, notifications envoyées aux utilisateurs sur tous les sites.
+Vues pour les Sites Secondaires
+Vue des Matériels par site 
+Vue des Tickets par site 
+Vue du Stock par site 
 
--- Stock (#stock_id, id_materiel, quantite, seuil_alerte, id_site) :
--- 📌 Suit les niveaux de stock des équipements et génère des alertes en cas de seuil critique.
--- 📌 Permet de prévoir les réapprovisionnements.
--- 🔗 (1,N) Relation avec Matériels
--- 🔗 (1,N) Relation avec Sites
--- 🔹 **Fragmentation horizontale** : chaque site stocke uniquement son propre stock de matériel.
+Ces vues permettent aux sites secondaires d’accéder uniquement aux données locales tout en maintenant une gestion centralisée des autres tables.
 
--- 🔹 Les **données critiques** (tickets, utilisateurs, rôles, logs) sont **centralisées à Cergy Le Parc**.
--- 🔹 Les **données spécifiques à un site** (matériels, réseaux, stocks) sont **fragmentées horizontalement**.
--- 🔹 Les **vues filtrées** permettent aux sites secondaires de **consulter uniquement les données qui les concernent**.

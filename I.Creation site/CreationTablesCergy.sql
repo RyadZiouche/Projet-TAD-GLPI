@@ -1,4 +1,7 @@
 
+--Creation Table sur le site Principal
+connect CERGY_LE_PARC/CERGY_LE_PARC;
+
 
 -- Table Types de Matériels
 CREATE TABLE Types_de_Materiels (
@@ -16,7 +19,11 @@ CREATE TABLE Sites (
 CREATE TABLE Réseaux (
     id_reseau INT PRIMARY KEY,
     adresse_ip VARCHAR2(255),
-    sous_reseau VARCHAR2(255)
+    sous_reseau VARCHAR2(255),
+    id_materiel INT,
+    FOREIGN KEY (id_materiel) REFERENCES Matériels(id_materiel)
+
+
 );
 
 -- Table Utilisateurs
@@ -33,10 +40,8 @@ CREATE TABLE Matériels (
     nom_materiel VARCHAR2(255),
     id_type_materiel INT,
     id_site INT,
-    id_reseau INT,
     FOREIGN KEY (id_type_materiel) REFERENCES Types_de_Materiels(id_type_materiel),
     FOREIGN KEY (id_site) REFERENCES Sites(id_site),
-    FOREIGN KEY (id_reseau) REFERENCES Réseaux(id_reseau)
 );
 
 -- Table Attributions
