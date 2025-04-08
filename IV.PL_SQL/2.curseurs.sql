@@ -1,3 +1,4 @@
+connect cergy_le_parc/cergy_le_parc;
 -- Curseur qui identifie les materiels sous seuil d'alerte 
 CREATE OR REPLACE PROCEDURE detecter_stock_bas AS
     CURSOR cur_stock_bas IS 
@@ -89,9 +90,5 @@ END;
 /
 
 
--- Tester curseur 
-BEGIN
-    nom_du_procdedure_de_curseur ;
-END;
-/
+
 

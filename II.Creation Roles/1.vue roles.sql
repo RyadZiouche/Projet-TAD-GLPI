@@ -35,7 +35,43 @@ JOIN
 WHERE 
     m.id_site = (SELECT id_site FROM Sites WHERE nom_site = 'Cergy');
 
+-- Vue Gestionnaire d'Affectation pour Cergy
+CREATE VIEW vue_gestionnaire_affectation_cergy AS
+SELECT
+    a.id_attribution,
+    a.id_utilisateur,
+    a.id_materiel,
+    u.nom,
+    u.prenom,
+    m.nom_materiel
+FROM
+    Attributions a
+JOIN
+    Utilisateurs u ON a.id_utilisateur = u.id_utilisateur
+JOIN
+    Matériels m ON a.id_materiel = m.id_materiel
+JOIN
+    Sites s ON m.id_site = s.id_site
+WHERE
+    s.nom_site = 'Cergy';
 
+
+-- Vue Administrateur Réseau pour Cergy et PAU
+CREATE VIEW vue_admin_reseau AS
+SELECT
+    r.id_reseau,
+    r.adresse_ip,
+    r.sous_reseau,
+    e.log_id,
+    e.type,
+    e.description,
+    e.date_event
+FROM
+    Réseaux r
+JOIN
+    Event_Logs e ON r.id_reseau = e.id_materiel
+WHERE
+    r.id_reseau IS NOT NULL;
 
 
 CONNECT pau/pau;
@@ -77,25 +113,7 @@ WHERE
 
 
 
--- Vue Gestionnaire d'Affectation pour Cergy
-CREATE VIEW vue_gestionnaire_affectation_cergy AS
-SELECT
-    a.id_attribution,
-    a.id_utilisateur,
-    a.id_materiel,
-    u.nom,
-    u.prenom,
-    m.nom_materiel
-FROM
-    Attributions a
-JOIN
-    Utilisateurs u ON a.id_utilisateur = u.id_utilisateur
-JOIN
-    Matériels m ON a.id_materiel = m.id_materiel
-JOIN
-    Sites s ON m.id_site = s.id_site
-WHERE
-    s.nom_site = 'Cergy';
+
 
 -- Vue Gestionnaire d'Affectation pour Pau 
 CREATE VIEW vue_gestionnaire_affectation_pau AS
@@ -116,21 +134,3 @@ JOIN
     Sites@db_cergy s ON m.id_site = s.id_site
 WHERE
     s.nom_site = 'Pau';
-
--- Vue Administrateur Réseau pour Cergy et PAU
-CREATE VIEW vue_admin_reseau AS
-SELECT
-    r.id_reseau,
-    r.adresse_ip,
-    r.sous_reseau,
-    e.log_id,
-    e.type,
-    e.description,
-    e.date_event
-FROM
-    Réseaux r
-JOIN
-    Event_Logs e ON r.id_reseau = e.id_materiel
-WHERE
-    r.id_reseau IS NOT NULL;
-

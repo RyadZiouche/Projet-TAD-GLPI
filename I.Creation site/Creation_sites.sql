@@ -1,18 +1,13 @@
---conecter au system
-connect SYSTEM/mot_de_passe ;
--- Creer un user sans le c##
-alter session set "_ORACLE_SCRIPT"=true;
--- Création de l'utilisateur principal
+-- Activer le mode script
+ALTER SESSION SET "_ORACLE_SCRIPT"=TRUE;
+
+
+-- Création de l'utilisateur cergy_le_parc
 CREATE USER cergy_le_parc IDENTIFIED BY cergy_le_parc;
-GRANT CONNECT, RESOURCE TO cergy_le_parc;
+GRANT BDA TO cergy_le_parc;
 ALTER USER cergy_le_parc QUOTA UNLIMITED ON USERS;
 
---conecter au system
-connect SYSTEM/mot_de_passe ;
--- Creer un user sans le c##
-alter session set "_ORACLE_SCRIPT"=true;
--- Création de l'utilisateur principal
+-- Création de l'utilisateur pau
 CREATE USER pau IDENTIFIED BY pau;
-GRANT CONNECT, RESOURCE TO pau;
+GRANT DBA TO pau;
 ALTER USER pau QUOTA UNLIMITED ON USERS;
-

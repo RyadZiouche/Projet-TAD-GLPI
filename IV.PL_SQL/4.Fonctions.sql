@@ -1,19 +1,31 @@
--- Fonction qui retoune le nom de type de materiels par site 
+connect cergy_le_parc/cergy_le_parc;
+CREATE OR REPLACE TYPE materiel_stock_type AS OBJECT (
+    nom_type_materiel VARCHAR2(255),
+    quantite_stock INT
+);
+/
+
+CREATE OR REPLACE TYPE materiel_stock_table AS TABLE OF materiel_stock_type;
+/
+
 CREATE OR REPLACE FUNCTION total_materiels_par_site(
     p_id_site IN INT
-) RETURN INT 
+) RETURN materiel_stock_table 
 IS
-    v_total INT;
+    v_result materiel_stock_table := materiel_stock_table();
 BEGIN
-    SELECT COUNT(*) INTO v_total
-    FROM Matériels
-    WHERE id_site = p_id_site;
-    
-    RETURN v_total;
+    SELECT materiel_stock_type(t.nom_type_materiel, COALESCE(SUM(s.quantite), 0))
+    BULK COLLECT INTO v_result
+    FROM Types_de_Materiels t
+    LEFT JOIN Matériels m ON t.id_type_materiel = m.id_type_materiel
+    LEFT JOIN Stock s ON m.id_materiel = s.id_materiel
+    WHERE m.id_site = p_id_site
+    GROUP BY t.nom_type_materiel;
+
+    RETURN v_result;
 END;
 /
--- Test
-SELECT total_materiels_par_site(1) FROM dual;
+
 
 -- Fonction qui retourne les infos a partir d'un mail 
 CREATE OR REPLACE FUNCTION trouver_utilisateur_par_email(p_email IN VARCHAR2)  
@@ -32,5 +44,3 @@ EXCEPTION
         RETURN 'Utilisateur introuvable';  
 END;  
 /
--- Tests 
-SELECT trouver_utilisateur_par_email('exemple@email.com') FROM dual;

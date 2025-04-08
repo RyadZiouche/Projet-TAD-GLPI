@@ -1,3 +1,5 @@
+
+CONNECT cergy_le_parc/cergy_le_parc;
 -- 1. Index sur la colonne 'email' de la table Utilisateurs
 CREATE INDEX idx_utilisateurs_email ON Utilisateurs(email);
 

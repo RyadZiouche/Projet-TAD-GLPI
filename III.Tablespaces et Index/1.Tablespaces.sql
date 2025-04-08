@@ -1,3 +1,4 @@
+CONNECT cergy_le_parc/cergy_le_parc;
 -- Creation des Tablespaces
 CREATE TABLESPACE TS_UTILISATEURS 
 DATAFILE 'ts_utilisateurs.dbf' SIZE 200M AUTOEXTEND ON NEXT 50M MAXSIZE 1G;

@@ -1,7 +1,7 @@
-
+connect cergy_le_parc/cergy_le_parc;
 -- Triggers que mets à jour la table stock lors de l'ajoute d'une attribution de materiel si possible 
 -- Renvoie une erreur si quantite non disponible 
-create or replace TRIGGER trg_retrait_stock
+CREATE OR REPLACE TRIGGER trg_retrait_stock
 AFTER INSERT ON Attributions
 FOR EACH ROW
 DECLARE
@@ -12,7 +12,11 @@ BEGIN
     INTO v_nb_materiel
     FROM Stock s
     WHERE s.id_materiel = :NEW.id_materiel
-      AND s.id_site = (SELECT id_site FROM Utilisateurs WHERE id_utilisateur = :NEW.id_utilisateur);
+      AND s.id_site = (
+          SELECT id_site 
+          FROM Utilisateurs 
+          WHERE id_utilisateur = :NEW.id_utilisateur
+      );
 
     -- Vérifier si la quantité est suffisante pour l'attribution
     IF v_nb_materiel > 0 THEN
@@ -20,17 +24,20 @@ BEGIN
         UPDATE Stock
         SET quantite = quantite - 1
         WHERE id_materiel = :NEW.id_materiel
-          AND id_site = (SELECT id_site FROM Utilisateurs WHERE id_utilisateur = :NEW.id_utilisateur);
+          AND id_site = (
+              SELECT id_site 
+              FROM Utilisateurs 
+              WHERE id_utilisateur = :NEW.id_utilisateur
+          );
     ELSE
         -- Lever une erreur si le stock est insuffisant
         RAISE_APPLICATION_ERROR(-20001, 'Stock insuffisant pour ce type de matériel sur ce site.');
     END IF;
 END;
+/
 
 
--- Creer la sequence pout creer des valeurs unique a events log pour le triggers
-CREATE SEQUENCE Event_Logs_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE;
--- Trigger qui se uniquement si la quantité mise à jour devient inférieure au seuil d'alerte.
+-- Trigger qui se declenche uniquement si la quantité mise à jour devient inférieure au seuil d'alerte.
 -- Insert dans events logs pour enregistrer l'evenement 
 CREATE OR REPLACE TRIGGER trg_seuil_alerte
 AFTER UPDATE ON Stock
@@ -48,10 +55,6 @@ BEGIN
 END;
 /
 
--- Tester en update une ligne de stock
-UPDATE Stock 
-SET quantite = 1  
-WHERE id_materiel = 101;
 
 -- Trigger qui ajoute une ligne a events logs lors d'une connexion 
 CREATE OR REPLACE TRIGGER trg_log_connexion
@@ -70,17 +73,9 @@ BEGIN
     );
 END;
 /
--- Teste trigger réseau 
-insert into RÉSEAUX(ID_RESEAU,ADRESSE_IP,SOUS_RESEAU,ID_MATERIEL)
-VALUES (5, '192.168.0.0','255.255.255.0',1);
 
 
--- Sequence pour le prochain trigger
-CREATE SEQUENCE Notifications_seq
-START WITH 1
-INCREMENT BY 1
-NOCACHE
-NOCYCLE;
+
 
 
 
@@ -132,8 +127,7 @@ BEGIN
 END;
 /
 
---Test 
-DELETE FROM Attributions WHERE id_attribution = 1;  -- Retirer l'attribution du matériel
+--Trigger notification ticket
 CREATE OR REPLACE TRIGGER trg_ticket_notification
 AFTER INSERT OR DELETE OR UPDATE ON Tickets
 FOR EACH ROW
